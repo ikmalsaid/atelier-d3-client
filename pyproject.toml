@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "atelier-d3-client"
-version = "0.0.1"
+version = "25.1"
 authors = [
   { name="ikmalsaid", email="ikmalsaid@gmail.com" },
 ]

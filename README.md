@@ -56,7 +56,7 @@ print(f"Generated images saved at: {images}")
 ### Output Structure
 Images are saved with the following naming convention:
 ```
-{save_to}/{YYYY-MM-DD}/{task_id_index}.{format}
+{save_to}/{YYYY-MM-DD}/{task_id}_{index}.{format}
 ```
 
 ## Error Handling
@@ -72,7 +72,6 @@ Each operation is logged (when logging is enabled) and raises appropriate except
 
 ## Requirements
 - Python 3.8+
-- Chrome/Chromium browser
 - Internet connection
 
 

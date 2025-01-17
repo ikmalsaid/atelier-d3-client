@@ -30,7 +30,7 @@ class AtelierD3Client():
         - save_to (str): Directory to save outputs.
         - save_as (str): Output format ('webp', 'jpg').
         """
-        self.__logger = setup_logger(
+        self.logger = setup_logger(
             name=self.__class__.__name__, 
             log_on=log_on, 
             log_to=log_to
@@ -45,7 +45,7 @@ class AtelierD3Client():
         self.__driver = self.__get_webdriver()
         self.__authenticate()
         
-        self.__logger.info(f"Atelier D3 Client is now ready!")
+        self.logger.info(f"Atelier D3 Client is now ready!")
 
     def __init_checks(self, save_to: str, save_as: str):
         """
@@ -58,12 +58,12 @@ class AtelierD3Client():
             if save_as.lower() in ['webp', 'jpg']:
                 self.save_as = save_as.lower()
             else:
-                self.__logger.warning(f"Invalid save format '{save_as}', defaulting to WEBP")
+                self.logger.warning(f"Invalid save format '{save_as}', defaulting to WEBP")
                 self.save_as = 'webp'
         
         except Exception as e:
             error = f"Error in init_checks: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
    
     def __online_check(self, url: str = 'https://www.google.com', timeout: int = 10):
@@ -75,7 +75,7 @@ class AtelierD3Client():
         
         except Exception as e:
             error = f"No internet connection available! Please check your network connection."
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
     
     def __load_preset(self, preset_path='__dtr__.py'):
@@ -90,7 +90,7 @@ class AtelierD3Client():
         
         except Exception as e:
             error = f"Error in load_preset: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
     
     def __get_webdriver(self):
@@ -102,20 +102,20 @@ class AtelierD3Client():
             options.add_experimental_option("excludeSwitches", ["ignore-certificate-errors"])
             
             try:
-                self.__logger.info('Attempting to use system ChromeDriver!')
+                self.logger.info('Attempting to use system ChromeDriver!')
                 return webdriver.Chrome(options=options)
             
             except WebDriverException as e:
-                self.__logger.info('System ChromeDriver not found or incompatible, downloading appropriate version!')
+                self.logger.info('System ChromeDriver not found or incompatible, downloading appropriate version!')
                 service = Service(ChromeDriverManager().install())
                 return webdriver.Chrome(service=service, options=options)
             
             finally:
-                self.__logger.info('Webdriver is ready!')
+                self.logger.info('Webdriver is ready!')
         
         except Exception as e:
             error = f"Error in get_webdriver: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
 
     def __authenticate(self):
@@ -139,7 +139,7 @@ class AtelierD3Client():
         
         except Exception as e:
             error = f"Error in authenticate: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
 
     # def __setup_save_dir(self, save_dir: str):
@@ -156,7 +156,7 @@ class AtelierD3Client():
         
     #     except Exception as e:
     #         error = f"Error in setup_save_dir: {e}"
-    #         self.__logger.error(error)
+    #         self.logger.error(error)
     #         raise RuntimeError(error)
     
     def __get_task_id(self):
@@ -169,12 +169,12 @@ class AtelierD3Client():
             uuid_part = str(uuid.uuid4())[:8]
             task_id = f"{timestamp}_{uuid_part}"
             
-            self.__logger.info(f"[{task_id}] Created task id from request!")
+            self.logger.info(f"[{task_id}] Created task id from request!")
             return task_id
         
         except Exception as e:
             error = f"Error in get_task_id: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
                  
     def __save_image(self, url: str, task_id, index: int = 1) -> str:
@@ -198,7 +198,7 @@ class AtelierD3Client():
                     suffix = '.webp'
                     
                 except Exception as e:
-                    self.__logger.warning(f"[{task_id}] Failed to convert to WebP, falling back to JPG!")
+                    self.logger.warning(f"[{task_id}] Failed to convert to WebP, falling back to JPG!")
                     content = response.content
                     suffix = '.jpg'
             else:
@@ -211,12 +211,12 @@ class AtelierD3Client():
             with open(file_path, 'wb') as output:
                 output.write(content)
                 
-            self.__logger.info(f"[{task_id}] Saved output: {file_path}")
+            self.logger.info(f"[{task_id}] Saved output: {file_path}")
             return file_path
                 
         except Exception as e:
             error = f"[{task_id}] Error in save_image: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
 
     def __v1(self, prompt, task_id) -> list:
@@ -236,14 +236,14 @@ class AtelierD3Client():
 
             saved_images = []
             while True:
-                self.__logger.info(f"[{task_id}] Refreshing request!")
+                self.logger.info(f"[{task_id}] Refreshing request!")
                 self.__driver.refresh()
 
                 try:
                     WebDriverWait(self.__driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "img_cont")))
                     divs = self.__driver.find_elements(By.CLASS_NAME, "img_cont")
                     urls = [div.find_element(By.TAG_NAME, "img").get_attribute("src").split("?")[0] for div in divs]
-                    self.__logger.info(f'[{task_id}] Found {len(urls)} images!')
+                    self.logger.info(f'[{task_id}] Found {len(urls)} images!')
                     
                     for idx, url in enumerate(urls, 1):
                         if filename := self.__save_image(url, task_id, idx):
@@ -254,7 +254,7 @@ class AtelierD3Client():
                     try:
                         img = self.__driver.find_element(By.CLASS_NAME, "gir_mmimg")
                         src = img.get_attribute("src").split("?")[0]
-                        self.__logger.info(f'[{task_id}] Found 1 image!')
+                        self.logger.info(f'[{task_id}] Found 1 image!')
                         
                         if filename := self.__save_image(src, task_id):
                             saved_images.append(filename)
@@ -265,7 +265,7 @@ class AtelierD3Client():
         
         except Exception as e:
             error = f"[{task_id}] {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
 
     def __v2(self, prompt, task_id) -> list:
@@ -284,7 +284,7 @@ class AtelierD3Client():
                 pass
 
             while True:
-                self.__logger.info(f"[{task_id}] Refreshing request!")
+                self.logger.info(f"[{task_id}] Refreshing request!")
                 self.__driver.refresh()
 
                 try:
@@ -298,12 +298,12 @@ class AtelierD3Client():
                         
                         if images:
                             urls = [img.get_attribute("src").split("?")[0] for img in images]
-                            self.__logger.info(f'[{task_id}] Found {len(urls)} images!')
+                            self.logger.info(f'[{task_id}] Found {len(urls)} images!')
                         
                         else:
                             img = grid.find_element(By.CLASS_NAME, "_1-images")
                             urls = [img.get_attribute("src").split("?")[0]]
-                            self.__logger.info(f'[{task_id}] Found 1 image!')
+                            self.logger.info(f'[{task_id}] Found 1 image!')
                         
                         for idx, url in enumerate(urls, 1):
                             if filename := self.__save_image(url, task_id, idx):
@@ -319,7 +319,7 @@ class AtelierD3Client():
         
         except Exception as e:
             error = f"[{task_id}] {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
         
     def generate_image(self, prompt):
@@ -330,14 +330,14 @@ class AtelierD3Client():
             try:
                 task_id = self.__get_task_id()
                 self.__driver.find_element(By.CLASS_NAME, "gih_pink")
-                self.__logger.info(f"[{task_id}] Processing request in legacy mode!")
+                self.logger.info(f"[{task_id}] Processing request in legacy mode!")
                 return self.__v1(prompt, task_id)
             
             except NoSuchElementException:
-                self.__logger.info(f"[{task_id}] Processing request in new mode!")
+                self.logger.info(f"[{task_id}] Processing request in new mode!")
                 return self.__v2(prompt, task_id)
         
         except Exception as e:
             error = f"[{task_id}] Error in generate_image: {e}"
-            self.__logger.error(error)
+            self.logger.error(error)
             raise RuntimeError(error)
