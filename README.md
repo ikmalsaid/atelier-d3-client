@@ -74,7 +74,6 @@ Each operation is logged (when logging is enabled) and raises appropriate except
 - Python 3.8+
 - Internet connection
 
-
 ## Notes
 - The client automatically manages ChromeDriver installation and updates
 - Operates in headless mode for improved performance
